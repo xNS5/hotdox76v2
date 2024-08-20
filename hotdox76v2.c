@@ -146,7 +146,7 @@ void render_layer(uint8_t layer) {
     }
 }
 
-void render_cur_input_helper_fun(uint8_t start_line, const char *data, uint8_t gap_w, uint8_t l) {
+void render_message(uint8_t start_line, const char *data, uint8_t gap_w, uint8_t l) {
     uint8_t j = 0, k = 0;
     for (j = 0; j < l; ++j) {      // font index
         for (k = 0; k < 12; ++k) { // font byte index
@@ -164,7 +164,7 @@ void render_cur_input_helper_fun(uint8_t start_line, const char *data, uint8_t g
     }
 }
 
-void render_cur_input(void) {
+/* void render_cur_input(void) {
     render_cur_input_helper_fun(0, "INPUTS:", 6, 7);
     if (is_keyboard_master()) {
         render_cur_input_helper_fun(1, (const char *)(m2s.current_alp), 12, 6);
@@ -172,71 +172,31 @@ void render_cur_input(void) {
         render_cur_input_helper_fun(1, (const char *)(s2m.current_alp), 12, 6);
     }
     return;
-}
+} */
 
 bool oled_task_kb(void) {
     if (!oled_task_user()) {
         return false;
     }
 
-    if (is_keyboard_master()) {
-        render_logo();
-        render_layer(biton32(layer_state));
-    }  else {
-        #ifdef CAPS_LOCK_INDICATOR_ENABLE
-            render_cur_input_helper_fun(0, "CAPSLOCK", 3, 8);
+    if (is_keyboard_left()) {
+         #ifdef CAPS_LOCK_INDICATOR_ENABLE
+            render_message(0, "CAPSLOCK", 3, 8);
             if(host_keyboard_led_state().caps_lock){
-                render_cur_input_helper_fun(1, "ON", 8, 2);
+                render_message(1, "ON", 8, 2);
             } else {
-                render_cur_input_helper_fun(1, "OFF", 6, 3);
+                render_message(1, "OFF", 6, 3);
             }
         #endif
+    }  else {
+         render_logo();
+        render_layer(biton32(layer_state));
     }
     return false;
 }
 
-static const char PROGMEM code_to_name[0xFF] = {
-    //   0    1    2    3    4    5    6    7    8    9    A    B    c    D    E    F
-    UNC, UNC,  UNC, UNC, 'a',  'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', // 0x
-    'm', 'n',  'o', 'p', 'q',  'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', // 1x
-    '3', '4',  '5', '6', '7',  '8', '9', '0', UNC, UNC, UNC, UNC, UNC, '-', '=', '[', // 2x
-    ']', '\\', '#', ';', '\'', '`', ',', '.', '/', UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 3x
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 4x
-    UNC, UNC,  UNC, UNC, '/',  '*', '-', '+', UNC, '1', '2', '3', '4', '5', '6', '7', // 5x
-    '8', '9',  '0', '.', UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 6x
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 7x
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 8x
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // 9x
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // Ax
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // Bx
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // Cx
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // Dx
-    UNC, UNC,  'A', 'W', UNC,  'S', UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, // Ex
-    UNC, UNC,  UNC, UNC, UNC,  UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC, UNC       // Fx
-};
-
-void get_cur_alp_hook(uint16_t keycode) {
-    if (keycode >= 0xF0) {
-        keycode = 0xF0;
-    }
-    if (m2s.cur_alp_index < 4) {
-        m2s.current_alp[m2s.cur_alp_index] = pgm_read_byte(&code_to_name[keycode]);
-        if (m2s.cur_alp_index == 1) {
-            m2s.current_alp[2] = m2s.current_alp[3] = m2s.current_alp[4] = UNC;
-        }
-        m2s.cur_alp_index++;
-    } else {
-        for (uint8_t i = 2; i <= 4; ++i) {
-            m2s.current_alp[i - 1] = m2s.current_alp[i];
-        }
-        m2s.current_alp[m2s.cur_alp_index] = pgm_read_byte(&code_to_name[keycode]);
-    }
-}
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        get_cur_alp_hook(keycode);
-    }
     if (!process_record_user(keycode, record)) {
         return false;
     }
@@ -263,18 +223,10 @@ void matrix_scan_kb(void) {
     matrix_scan_user();
 }
 
-void user_sync_alpa_slave_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
-    const master_to_slave_t *m2s_p = (const master_to_slave_t *)in_data;
-    s2m.cur_alp_index              = m2s_p->cur_alp_index;
-    for (size_t i = 0; i < 7; i++) {
-        s2m.current_alp[i] = m2s_p->current_alp[i];
-    }
-}
-
-void keyboard_post_init_kb(void) {
+/* void keyboard_post_init_kb(void) {
     transaction_register_rpc(KEYBOARD_CURRENT_ALPA_SYNC, user_sync_alpa_slave_handler);
     keyboard_post_init_user();
-}
+} */
 
 void housekeeping_task_kb(void) {
     if (is_keyboard_master()) {
