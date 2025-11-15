@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "hotdox76v2.h"
-#include <stdbool.h>
 #include <string.h>
 #include <transactions.h>
 #include "oled_font_lib/logo2.h"
 #include "oled_font_lib/ext_font.h"
+
 
 #ifdef RGB_MATRIX_ENABLE
 // clang-format off
@@ -20,12 +20,12 @@ led_config_t g_led_config = {
         { 13, 12, 11, 10,  9,  8,  7         },
         {   0, 1,  2,   3, 4,  5,  6         },
         /*right*/
-        { NO_LED, 72, 71, 70, 73, 75, 74     },
-        { 65, 66, 67, 68, 69, NO_LED, NO_LED },
-        { 64, 63, 62, 61, 60, 59, 58         },
-        { 52, 53, 54, 55, 56, 57, NO_LED     },
-        { 51, 50, 49, 48, 47, 46, 45         },
-        { 38, 39, 40, 41, 42, 43, 44         }
+        { NO_LED, 77, 76, 75, 78, 80, 79     },
+        { 70, 71, 72, 73, 74, NO_LED, NO_LED },
+        { 69, 68, 67, 66, 65, 64, 63         },
+        { 57, 58, 59, 60, 61, 62, NO_LED     },
+        { 56, 55, 54, 53, 52, 51, 50         },
+        { 43, 44, 45, 46, 47, 48, 49         }
     },
     {
         // LED Index to Physical Position
@@ -60,7 +60,7 @@ led_config_t g_led_config = {
 
 #ifdef OLED_ENABLE
 
-#    define UNC (94 + 0x21)
+#    define UNC (' ')
 typedef struct _master_to_slave_t {
     int  cur_alp_index;
     char current_alp[7];
@@ -111,8 +111,8 @@ void render_layer_helper_fun(uint8_t start_line, const char *data, uint8_t gap_w
     for (j = 0; j < l; ++j) {      // font index
         for (k = 0; k < 12; ++k) { // font byte index
             //                                        base + logo_w(32) + gap_w(12) +l*font_w(12)+current_byte_index
-            oled_write_raw_byte(pgm_read_byte(&ext_big_font[pgm_read_byte(&data[j]) - 0x21][k]), start_line * 2 * 128 + 32 + gap_w + j * 12 + k);
-            oled_write_raw_byte(pgm_read_byte(&ext_big_font[pgm_read_byte(&data[j]) - 0x21][k + 12]), start_line * 2 * 128 + 128 + 32 + gap_w + j * 12 + k);
+            oled_write_raw_byte(pgm_read_byte(&ext_big_font[pgm_read_byte(&data[j]) - 0x20][k]), start_line * 2 * 128 + 32 + gap_w + j * 12 + k);
+            oled_write_raw_byte(pgm_read_byte(&ext_big_font[pgm_read_byte(&data[j]) - 0x20][k + 12]), start_line * 2 * 128 + 128 + 32 + gap_w + j * 12 + k);
         }
     }
     for (j = 0; j < gap_w; ++j) {
@@ -137,11 +137,13 @@ void render_layer(uint8_t layer) {
             render_layer_helper_fun(1, PSTR("2:SHORT"), 6, 7);
             break;
         case 3:
-            render_layer_helper_fun(1, PSTR("3:FUNCT"), 6, 7);
+            render_layer_helper_fun(1, PSTR("3:FUNC"), 12, 6);
             break;
         case 4:
-        default:
             render_layer_helper_fun(1, PSTR("4:MAINT"), 6, 7);
+            break;
+        default:
+            render_layer_helper_fun(1, PSTR("5:WORK"), 12, 6);
             break;
     }
 }
@@ -151,8 +153,8 @@ void render_message(uint8_t start_line, const char *data, uint8_t gap_w, uint8_t
     for (j = 0; j < l; ++j) {      // font index
         for (k = 0; k < 12; ++k) { // font byte index
             //                                        base + logo_w(0) + gap_w(12) +l*font_w(12)+current_byte_index
-            oled_write_raw_byte(pgm_read_byte(&ext_big_font[data[j] - 0x21][k]), start_line * 2 * 128 + gap_w + j * 12 + k);
-            oled_write_raw_byte(pgm_read_byte(&ext_big_font[data[j] - 0x21][12 + k]), start_line * 2 * 128 + 128 + gap_w + j * 12 + k);
+            oled_write_raw_byte(pgm_read_byte(&ext_big_font[data[j] - 0x20][k]), start_line * 2 * 128 + gap_w + j * 12 + k);
+            oled_write_raw_byte(pgm_read_byte(&ext_big_font[data[j] - 0x20][12 + k]), start_line * 2 * 128 + 128 + gap_w + j * 12 + k);
         }
     }
     for (j = 0; j < gap_w; ++j) {
@@ -164,15 +166,6 @@ void render_message(uint8_t start_line, const char *data, uint8_t gap_w, uint8_t
     }
 }
 
-/* void render_cur_input(void) {
-    render_cur_input_helper_fun(0, "INPUTS:", 6, 7);
-    if (is_keyboard_master()) {
-        render_cur_input_helper_fun(1, (const char *)(m2s.current_alp), 12, 6);
-    } else {
-        render_cur_input_helper_fun(1, (const char *)(s2m.current_alp), 12, 6);
-    }
-    return;
-} */
 
 bool oled_task_kb(void) {
     if (!oled_task_user()) {
@@ -180,7 +173,7 @@ bool oled_task_kb(void) {
     }
 
     if (is_keyboard_left()) {
-         #ifdef CAPS_LOCK_INDICATOR_ENABLE
+        #ifdef CAPS_LOCK_INDICATOR_ENABLE
             render_message(0, "CAPSLOCK", 3, 8);
             if(host_keyboard_led_state().caps_lock){
                 render_message(1, "ON", 8, 2);
@@ -189,47 +182,30 @@ bool oled_task_kb(void) {
             }
         #endif
     }  else {
-         render_logo();
+        render_logo();
         render_layer(biton32(layer_state));
     }
     return false;
 }
 
-
-bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-    if (!process_record_user(keycode, record)) {
-        return false;
+void user_sync_alpa_slave_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
+    const master_to_slave_t *m2s_p = (const master_to_slave_t *)in_data;
+    s2m.cur_alp_index              = m2s_p->cur_alp_index;
+    for (size_t i = 0; i < 7; i++) {
+        s2m.current_alp[i] = m2s_p->current_alp[i];
     }
-    switch (keycode) {
-        case TOG_OLED:
-            if (record->event.pressed) {
-                if (is_oled_on()) {
-                    oled_off();
-                } else {
-                    oled_on();
-                }
-            }
-            return false;
-        default:
-            return true;
-    }
-    return true;
 }
 
-void matrix_scan_kb(void) {
-    if (!is_oled_on()) {
-        m2s.cur_alp_index = 1;
-    }
-    matrix_scan_user();
-}
-
-/* void keyboard_post_init_kb(void) {
+void keyboard_post_init_kb(void) {
     transaction_register_rpc(KEYBOARD_CURRENT_ALPA_SYNC, user_sync_alpa_slave_handler);
     keyboard_post_init_user();
-} */
+}
 
 void housekeeping_task_kb(void) {
     if (is_keyboard_master()) {
+        if (!is_oled_on()) {
+            m2s.cur_alp_index = 1;
+        }
         // Interact with slave every 200ms
         static uint32_t last_sync = 0;
         if (timer_elapsed32(last_sync) > 200) {
@@ -241,7 +217,6 @@ void housekeeping_task_kb(void) {
             }
         }
     }
-    housekeeping_task_user();
 }
 
 #endif
@@ -265,5 +240,4 @@ const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRIX_COLS] = {
     {{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}},
     {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}}
 };
-
 #endif

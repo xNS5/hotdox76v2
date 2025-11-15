@@ -3,7 +3,7 @@ Repo to store the layout + firmware for my hotdox76v2
 
 *An Ergodox style keyboard with per key RGB.*
 
-* Keyboard Maintainer: [Drashna Jael're](https://github.com/Drashna Jael're)
+* Keyboard Maintainer: [Drashna Jael're](https://github.com/drashna)
 * Hardware Supported: Hotdox 76v2
 * Hardware Availability: https://github.com/Oh-My-Mechanical-Keyboard 
 
@@ -38,29 +38,20 @@ The code itself is in`assets/alpaca_hotdox76v2.zip`, and the original firmware i
 
 * I'm using Linux, specificlally Pop!_OS 22.04 (i.e. Ubuntu 22.04)
 * QMK CLI is installed properly
+* QMK Git repo is cloned to your local system
 * You have a basic understanding of C + how to use the command line. 
 
 ## Flashing with QMK
 
 1. Starting wth a hotfox76v2 with stock firmware, clone the QMK firmware using Git
-2. Open either the desktop or web application VIA
+2. Open QMK Configurator
 3. Make your desired layout adjustments
-4. Copy the saved layout to `qmk_firmware/keyboards/hotdox76v2/keymaps/via`
-5. Update the saved layout JSON with the following key + values:
+4. Copy the saved layout to `qmk_firmware/keyboards/hotdox76v2/keymaps/[file_name].json`
+5. Run `qmk json2c [file_name].json -o keymap.c`. If the keymap.json file still exists in the keymap directory it will be given priority over the `keymap.c` file. 
+6. Assuming there are no errors, you will have a QMK compatible keymap. 
 
-```json
-{
-"keyboard": "hotdox76v2",
-"keymap":"via",
-"layout": "LAYOUT_ergodox"
-}
-```
-
-6. Run `qmk via2json -kb hotdox76v2 -km via [via_layout_file].json -o keymap.json`.
-    6.1 (Optional) Change the keymap.json file to some other name, then run `qmk json2c [some-other-name].json -o keymap.c`. If the keymap.json file still exists in the keymap directory it will be given priority over the `keymap.c` file. 
-7. Assuming there are no errors, you will have a QMK compatible keymap. 
-8. Navigate to the top-level parent directory `qmk_firmware/` and run `qmk flash -kb hotdox76v2 -km via -bl dfu-split-[right|left]`. Adjust the command based on which half of the keyboard is plugged into the computer.
-
+    6.1 If there *are* errors, good luck. Read through the error messages, and hit up the [QMK discord server](https://discord.com/invite/qmk) if you need assistance. Be patient, don't be demanding.
+7. Navigate to the top-level parent directory `qmk_firmware/` and run `qmk flash -kb hotdox76v2 -km via -bl dfu-split-[right|left]`. Adjust the command based on which half of the keyboard is plugged into the computer.
 
 
 ## My Tweaks
@@ -74,13 +65,20 @@ The code itself is in`assets/alpaca_hotdox76v2.zip`, and the original firmware i
 
 * To adjust the layer titles, edit `hotdox76v2.c` and edit `render_layer()`. The `render_layer_helper_fun` takes in a set number of arguments including:
 
-1. The start line
-2. Data (In this case the string I want to print to the OLED)
-3. Gap (Spacing in the display)
-4. L (The length of the input)
+    1. The start line
+    2. Data (In this case the string I want to print to the OLED)
+    3. Gap (Spacing in the display)
+    4. L (The length of the input)
 
+* For some reason it takes a while to re-figure out how to actually use the software. It might take a bit of tinkering to actually get it to where you want it to be.
+* When using `dfu-programmer` to do stuff:
+    * Erase: `dfu-programmer atmega32u4 erase`
+    * Flash: `dfu-programmer atmegau32u4 flash <file_name>.hex --force`
+    * Restart: `dfu-programmer atmegau32u4 reset`
 
 # Layer Diagrams
+
+(Note: Slightly out of date as I'm somewhat lazy and don't want to update them at the moment)
 
 ![Layer 0](./assets/layer_0.png)
 
