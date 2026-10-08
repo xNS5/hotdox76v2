@@ -28,30 +28,32 @@ Enter the bootloader in 3 ways:
 
 # OEM Alpaca Keyboard Hotdox76v2 Firmware
 
-I reached out to Alpaca Keyboards regarding the stock firmware, and they were kind enough to provide me with the QMK code they used to compile ther original firmware. I've included it in this repo just in case someone else comes along with the same problem I had. 
-The code itself is in`assets/alpaca_hotdox76v2.zip`, and the original firmware is in `assets/HotDox_V2_Firmware.zip`.
+I reached out to Alpaca Keyboards regarding the stock firmware, and they were kind enough to provide me with the code used to compile ther original firmware. I've included it in this repo just in case someone else comes along with the same problem I had. 
+
+The code itself is in `assets/alpaca_hotdox76v2.zip`, and the original firmware is in `assets/HotDox_V2_Firmware.zip`. Feel free to run it through Virustotal or something to verify that this isn't malware.
 
 
 # My Notes
 
 ## Prerequisites
 
-* I'm using Linux, specificlally Pop!_OS 22.04 (i.e. Ubuntu 22.04)
+* I'm using Linux, specificlally Pop!_OS 24.04
 * QMK CLI is installed properly
 * QMK Git repo is cloned to your local system
 * You have a basic understanding of C + how to use the command line. 
 
 ## Flashing with QMK
 
-1. Starting wth a hotfox76v2 with stock firmware, clone the QMK firmware using Git
-2. Open QMK Configurator
-3. Make your desired layout adjustments
-4. Copy the saved layout to `qmk_firmware/keyboards/hotdox76v2/keymaps/[file_name].json`
-5. Run `qmk json2c [file_name].json -o keymap.c`. If the keymap.json file still exists in the keymap directory it will be given priority over the `keymap.c` file. 
+1. Starting wth a hotdox76v2 with stock firmware, clone the QMK firmware repository using git ([link](https://github.com/qmk/qmk_firmware))
+2. Open [QMK Configurator](https://config.qmk.fm/)
+3. Make your desired layout changes
+4. Copy the saved layout to `qmk_firmware/keyboards/hotdox76v2/keymaps/<keymap_directory_name>/[file_name].json`
+5. `cd` to `qmk_firmware/keyboards/hotdox76v2/keymaps/<keymap_directory_name>/` and run `qmk json2c [file_name].json -o keymap.c`
+    * If the keymap.json file still exists in the keymap directory it will be given priority over the `keymap.c` file. 
 6. Assuming there are no errors, you will have a QMK compatible keymap. 
 
     6.1 If there *are* errors, good luck. Read through the error messages, and hit up the [QMK discord server](https://discord.com/invite/qmk) if you need assistance. Be patient, don't be demanding.
-7. Navigate to the top-level parent directory `qmk_firmware/` and run `qmk flash -kb hotdox76v2 -km via -bl dfu-split-[right|left]`. Adjust the command based on which half of the keyboard is plugged into the computer.
+7. Navigate to the top-level parent directory `qmk_firmware/` and run `qmk flash -kb hotdox76v2 -km <your_keymap_here> -bl dfu-split-[right|left]`. Adjust the command based on which half of the keyboard is plugged into the computer.
 
 
 ## My Tweaks
@@ -62,9 +64,7 @@ The code itself is in`assets/alpaca_hotdox76v2.zip`, and the original firmware i
 
 
 ## Misc Notes
-
 * To adjust the layer titles, edit `hotdox76v2.c` and edit `render_layer()`. The `render_layer_helper_fun` takes in a set number of arguments including:
-
     1. The start line
     2. Data (In this case the string I want to print to the OLED)
     3. Gap (Spacing in the display)
@@ -75,15 +75,14 @@ The code itself is in`assets/alpaca_hotdox76v2.zip`, and the original firmware i
     * Erase: `dfu-programmer atmega32u4 erase`
     * Flash: `dfu-programmer atmegau32u4 flash <file_name>.hex --force`
     * Restart: `dfu-programmer atmegau32u4 reset`
+* Error message about not being able to find `qmk_cli` for *some* reason
+    * Reinstall QMK CLI with `curl -fsSL https://install.qmk.fm | sh` ([source](https://docs.qmk.fm/cli))
 
 # Layer Diagrams
-
-(Note: Slightly out of date as I'm somewhat lazy and don't want to update them at the moment)
 
 ![Layer 0](./assets/layer_0.png)
 
 Layer 0 is my primary layer for writing. Alphanumeric characters on both halves, with the arrow keys on the bottom right. Bottom left row has undo (i.e. ctrl+z), along with tapdance keys for cut, copy, paste. The tapdance keys in this case add a left shift to the command, which is helpful when copying things from a terminal. The left thumb cluster has shift and control, in addition to layer toggles. The right thumb cluster has space, enter, in addition to other layer toggles. 
-
 
 ![Layer 1](./assets/layer_1.png)
 
